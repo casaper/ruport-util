@@ -6,4 +6,4 @@ Here are the changes:
 - Some methods were moved from the Kernel module to the Ruport module
 - BlankSlate doesn't overwrite object_id
 - Bumped version number and added .sermo
-
+- Added gemspec
