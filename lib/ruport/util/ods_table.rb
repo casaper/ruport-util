@@ -22,7 +22,7 @@ class Ruport::Data::Table
     # Loads a ods file directly into a Table using the roo library.
     #
     # Example:
-    #   
+    #
     #   # Load data from Openoffice ods file with defaults
     #   table = Table.load_ods('myspreadsheet.ods')
     #
@@ -40,11 +40,11 @@ class Ruport::Data::Table
       get_table_from_ods_file(ods_file, options)
     end
 
-    # Creates a Table from an Openoffice object (from roo library). 
+    # Creates a Table from an Openoffice object (from roo library).
     #
     # Example:
-    #   
-    #   # parse openoffice object with defaults. 
+    #
+    #   # parse openoffice object with defaults.
     #   table = Table.parse_ods(openoffice_object)
     #
     #   # do not assume the data has column names.
@@ -55,11 +55,11 @@ class Ruport::Data::Table
     #
     #   # Start row - default is the first row. Use this to override where
     #                 the first row should start.
-    #   table = Table.parse_ods('myspreadsheet.ods', {:start_row => 1})    
+    #   table = Table.parse_ods('myspreadsheet.ods', {:start_row => 1})
     #
     def parse_ods(ods_object, options={})
       get_table_from_ods(ods_object, options)
-    end      
+    end
 
     private
 
@@ -70,27 +70,27 @@ class Ruport::Data::Table
     end
 
     def get_table_from_ods(oo, options) #:nodoc:
-      options = {:has_column_names => true, 
+      options = {:has_column_names => true,
                  :select_sheet => oo.sheets.first,
-                 :start_row => 0}.merge(options)        
+                 :start_row => 0}.merge(options)
       oo.default_sheet = options[:select_sheet]
-      
-      options[:start_row] = options[:start_row].to_i + 1 unless options[:start_row].nil?      
+
+      options[:start_row] = options[:start_row].to_i + 1 unless options[:start_row].nil?
       start_row = options[:start_row]
 
       raise 'start_row must be greater than or equal to zero' if options[:start_row].to_i < 0
-      
+
       last_row_index_zero = oo.last_row - 1
-      raise "start_row must be less than or equal to #{last_row_index_zero}" if !oo.last_row.nil? and 
+      raise "start_row must be less than or equal to #{last_row_index_zero}" if !oo.last_row.nil? and
                                                                                 (options[:start_row].to_i > oo.last_row)
-                                                                                
-      table = self.new(options) do |feeder|            
-        
+
+      table = self.new(options) do |feeder|
+
         if options[:has_column_names] == true
-          feeder.data.column_names = oo.row(start_row) 
+          feeder.data.column_names = oo.row(start_row)
           start_row = start_row + 1
         end
-        
+
         unless oo.last_row.nil?
           start_row.upto(oo.last_row) do |row|
             tempArr = []
@@ -98,12 +98,12 @@ class Ruport::Data::Table
               tempArr << oo.cell(row,col)
             end
             feeder << tempArr
-          end 
+          end
         end
-        
+
       end
 
-      return table     
+      return table
     end
 
   end
@@ -111,12 +111,12 @@ class Ruport::Data::Table
   extend FromODS
 
 end
-    
 
-module Kernel
-  
+
+module Ruport
+
   alias :RuportTableMethod :Table
-  
+
   # Updates the Ruport interface for creating Data::Tables with
   # the ability to pass in a ODS file or Roo Openoffice object.
   #
@@ -129,8 +129,8 @@ module Kernel
       Ruport::Data::Table.load_ods(*args)
     else
       RuportTableMethod(*args,&block)
-    end             
-    
+    end
+
     return table
   end
-end  
+end
