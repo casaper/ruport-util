@@ -185,6 +185,8 @@ module Ruport
       data = @raw_data ? [] : Data::Table.new
 
       DBI.connect(@dsn, @user, @password) do |dbh|
+         # Work-around for utf-8 enconding with some MySQL connections
+        /dbi:mysql/i.match(@dsn){ dbh.execute("SET NAMES utf8") }
         dbh.execute(query_text, *(params || [])) do |sth|
           # Work-around for inconsistent DBD behavior w/ resultless queries
           names = sth.column_names rescue []
