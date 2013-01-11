@@ -178,34 +178,29 @@ module Ruport
 
     private
 
-    def query_data(query_text, params=@params)
-
-      require "dbi"
+    def query_data(dbh, query_text, params=@params)
 
       data = @raw_data ? [] : Data::Table.new
 
-      DBI.connect(@dsn, @user, @password) do |dbh|
-         # Work-around for utf-8 enconding with some MySQL connections
-        /dbi:mysql/i.match(@dsn){ dbh.execute("SET NAMES utf8") }
-        dbh.execute(query_text, *(params || [])) do |sth|
-          # Work-around for inconsistent DBD behavior w/ resultless queries
-          names = sth.column_names rescue []
-          if names.empty?
-            # Work-around for SQLite3 DBD bug
-            sth.cancel rescue nil
-            return nil
-          end
+      dbh.execute(query_text, *(params || [])) do |sth|
+        # Work-around for inconsistent DBD behavior w/ resultless queries
+        names = sth.column_names rescue []
+        if names.empty?
+          # Work-around for SQLite3 DBD bug
+          sth.cancel rescue nil
+          return nil
+        end
 
-          data.column_names = names unless @raw_data
+        data.column_names = names unless @raw_data
 
-          sth.each do |row|
-            row = row.to_a
-            row = Data::Record.new(row, :attributes => names) unless @raw_data
-            yield row if block_given?
-            data << row if !block_given?
-          end
+        sth.each do |row|
+          row = row.to_a
+          row = Data::Record.new(row, :attributes => names) unless @raw_data
+          yield row if block_given?
+          data << row if !block_given?
         end
       end
+
       data
     end
 
@@ -214,10 +209,19 @@ module Ruport
     end
 
     def fetch(&block)
+      require "dbi"
       data = nil
       final = @statements.size - 1
-      @statements.each_with_index do |query_text, index|
-        data = query_data(query_text, &(index == final ? block : nil))
+      
+      # Create a single DBI connection with which to run all the statements.
+      # This allows use of session-wide features such as variables and
+      # temporary tables.
+      DBI.connect(@dsn, @user, @password) do |dbh|
+        # Work-around for utf-8 enconding with some MySQL connections
+        /dbi:mysql/i.match(@dsn){ dbh.execute("SET NAMES utf8") }
+        @statements.each_with_index do |query_text, index|
+          data = query_data(dbh, query_text, &(index == final ? block : nil))
+        end
       end
       return data
     end
