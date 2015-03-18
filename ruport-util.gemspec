@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = "ruport-util"
-  s.version = "0.14.2.sermo"
+  s.version = "0.14.2.onsite"
 
   s.authors = ["Gregory Brown"]
   s.date = "2008-04-02"
