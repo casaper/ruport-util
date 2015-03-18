@@ -1,7 +1,7 @@
 require 'cgi'
 require 'tmpdir'
 
-require 'zip/zip'
+require 'zip'
 
 module Ruport
 
