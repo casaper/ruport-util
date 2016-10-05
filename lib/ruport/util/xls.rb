@@ -180,8 +180,9 @@ module Ruport
 </worksheet>}
 
       @tempfile = Tempfile.new('output.xlsx')
+      @tempfile.binmode
 
-      File.open(BLANK_XLSX) { |bo|
+      File.open(BLANK_XLSX, 'rb') { |bo|
         @tempfile.print(bo.read(1024)) until bo.eof?
       }
       @tempfile.close
